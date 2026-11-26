@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RetroOS 95 — Portfolio & Link-in-Bio</title>
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #008080;
+      --win-bg: #c0c0c0;
+      --bar-start: #000080;
+      --bar-end: #1084d0;
+    }
+
+    body {
+      margin: 0;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: "MS Sans Serif", Tahoma, Geneva, sans-serif;
+      font-size: 13px;
+      color: #000;
+    }
+
+    /* Classic 90s 3D Bevels */
+    .out {
+      background: var(--win-bg);
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf;
+    }
+
+    .in {
+      background: #fff;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+    }
+
+    /* Desktop Icons */
+    .desktop {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 84px;
+      gap: 16px;
+      width: fit-content;
+    }
+
+    .icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #fff;
+      cursor: pointer;
+      padding: 6px 4px;
+      border: 1px solid transparent;
+    }
+
+    .icon:hover, .icon:focus {
+      background: rgba(0, 0, 128, 0.45);
+      border: 1px dotted #fff;
+    }
+
+    .icon-img { font-size: 30px; margin-bottom: 4px; line-height: 1; }
+    .icon-label { font-size: 12px; text-shadow: 1px 1px 0 #000; }
+
+    /* Windows */
+    .win {
+      position: absolute;
+      width: 400px;
+      max-width: 92vw;
+      max-height: calc(100dvh - 56px);
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .win.open { display: flex; }
+
+    .bar {
+      background: linear-gradient(90deg, var(--bar-start), var(--bar-end));
+      color: #fff;
+      padding: 4px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      cursor: move;
+      touch-action: none;
+    }
+
+    .win-close {
+      width: 18px;
+      height: 16px;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 0;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .win-body {
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      user-select: text;
+    }
+
+    /* Profile Header */
+    .profile-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      background: #e8e8e8;
+    }
+
+    .name { font-size: 16px; font-weight: bold; margin: 0 0 2px; }
+    .role { font-size: 12px; color: #333; margin: 0; }
+    .bio { margin: 0; line-height: 1.45; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      padding: 2px 7px;
+      font-size: 11px;
+      background: #dfdfdf;
+      border: 1px solid #808080;
+    }
+
+    /* Buttons & Links */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 6px 12px;
+      color: #000;
+      text-decoration: none;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn:active {
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+    }
+
+    .link-list { display: flex; flex-direction: column; gap: 8px; }
+    .link-btn { justify-content: flex-start; padding: 9px 12px; font-weight: bold; }
+
+    /* Project Cards */
+    .proj-card {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .proj-title { font-weight: bold; font-size: 13px; margin: 0; }
+    .proj-desc { margin: 0; font-size: 12px; color: #222; line-height: 1.4; }
+
+    /* Taskbar */
+    .taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px;
+      z-index: 1000;
+      gap: 6px;
+    }
+
+    .task-left { display: flex; align-items: center; gap: 6px; overflow-x: auto; }
+    .start-btn { font-weight: bold; padding: 3px 10px; }
+
+    .clock {
+      padding: 3px 10px;
+      font-size: 12px;
+      background: var(--win-bg);
+      border-top: 1px solid #808080;
+      border-left: 1px solid #808080;
+      border-right: 1px solid #fff;
+      border-bottom: 1px solid #fff;
+      white-space: nowrap;
+    }
+
+    /* Start Menu */
+    .start-menu {
+      position: fixed;
+      bottom: 34px;
+      left: 2px;
+      width: 200px;
+      display: none;
+      z-index: 1001;
+    }
+
+    .start-menu.open { display: flex; }
+
+    .start-side {
+      width: 24px;
+      background: linear-gradient(180deg, var(--bar-start), var(--bar-end));
+      color: #c0c0c0;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      padding: 8px 3px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .start-items { flex: 1; padding: 4px 0; }
+    .m-item { padding: 7px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .m-item:hover { background: var(--bar-start); color: #fff; }
+    .m-divider { border: 0; border-top: 1px solid #808080; border-bottom: 1px solid #fff; margin: 4px 6px; }
+
+    /* Mobile Optimization */
+    @media (max-width: 700px) {
+      .desktop {
+        grid-template-columns: repeat(4, 1fr);
+        width: 100%;
+        padding: 12px 8px;
+        gap: 6px;
+      }
+      .win {
+        left: 4vw !important;
+        top: 86px !important;
+        width: 92vw !important;
+        max-height: calc(100dvh - 132px);
+      }
+      .bar { cursor: default; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Desktop Icons -->
+  <div class="desktop">
+    <div class="icon" onclick="openWin('about-win')">
+      <div class="icon-img">👤</div>
+      <div class="icon-label">About Me</div>
+    </div>
+    <div class="icon" onclick="openWin('links-win')">
+      <div class="icon-img">🔗</div>
+      <div class="icon-label">Links</div>
+    </div>
+    <div class="icon" onclick="openWin('projects-win')">
+      <div class="icon-img">📁</div>
+      <div class="icon-label">Projects</div>
+    </div>
+    <div class="icon" onclick="openWin('contact-win')">
+      <div class="icon-img">✉️</div>
+      <div class="icon-label">Contact</div>
+    </div>
+  </div>
+
+  <!-- Window: About Me -->
+  <div id="about-win" class="win out open" style="top: 48px; left: 130px;">
+    <div class="bar" onmousedown="startDrag(event, 'about-win')">
+      <span>👤 About_Me.exe</span>
+      <button class="win-close out" onclick="closeWin('about-win')">X</button>
+    </div>
+    <div class="win-body" id="about-content"></div>
+  </div>
+
+  <!-- Window: Links (Link-in-Bio) -->
+  <div id="links-win" class="win out" style="top: 90px; left: 210px; width: 340px;">
+    <div class="bar" onmousedown="startDrag(event, 'links-win')">
+      <span>🔗 My_Links.url</span>
+      <button class="win-close out" onclick="closeWin('links-win')">X</button>
+    </div>
+    <div class="win-body">
+      <div class="link-list" id="links-content"></div>
+    </div>
+  </div>
+
+  <!-- Window: Projects -->
+  <div id="projects-win" class="win out" style="top: 120px; left: 260px; width: 420px;">
+    <div class="bar" onmousedown="startDrag(event, 'projects-win')">
+      <span>📁 Projects_Folder</span>
+      <button class="win-close out" onclick="closeWin('projects-win')">X</button>
+    </div>
+    <div class="win-body" id="projects-content"></div>
+  </div>
+
+  <!-- Window: Contact -->
+  <div id="contact-win" class="win out" style="top: 150px; left: 180px; width: 340px;">
+    <div class="bar" onmousedown="startDrag(event, 'contact-win')">
+      <span>✉️ Contact.txt</span>
+      <button class="win-close out" onclick="closeWin('contact-win')">X</button>
+    </div>
+    <div class="win-body" id="contact-content"></div>
+  </div>
+
+  <!-- Start Menu -->
+  <div id="start-menu" class="start-menu out">
+    <div class="start-side" id="start-brand">RetroOS 95</div>
+    <div class="start-items">
+      <div class="m-item" onclick="openWin('about-win'); toggleStart();">👤 About Me</div>
+      <div class="m-item" onclick="openWin('links-win'); toggleStart();">🔗 Links</div>
+      <div class="m-item" onclick="openWin('projects-win'); toggleStart();">📁 Projects</div>
+      <div class="m-item" onclick="openWin('contact-win'); toggleStart();">✉️ Contact</div>
+      <hr class="m-divider" />
+      <div class="m-item" onclick="setTheme('#008080','#000080','#1084d0'); toggleStart();">🎨 Classic Teal</div>
+      <div class="m-item" onclick="setTheme('#2b1055','#6a0dad','#d4145a'); toggleStart();">🌆 Vaporwave</div>
+      <div class="m-item" onclick="setTheme('#111111','#222222','#444444'); toggleStart();">🌑 Dark Retro</div>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <div class="taskbar out">
+    <div class="task-left">
+      <button class="btn out start-btn" onclick="toggleStart()">🪟 Start</button>
+      <button class="btn out" onclick="openWin('links-win')">🔗 Links</button>
+      <button class="btn out" onclick="openWin('projects-win')">📁 Work</button>
+    </div>
+    <div id="clock" class="clock">12:00 PM</div>
+  </div>
+
+  <script>
+    /* ==========================================================
+       EASY CONFIG — BUYERS ONLY NEED TO EDIT THIS SECTION
+    ========================================================== */
+    const SITE_CONFIG = {
+      brandName: "RetroOS 95",
+      avatar: "🚀", // Use any emoji
+      name: "Your Name",
+      role: "Web Developer & Digital Creator",
+      bio: "I build fast websites, digital products, and interactive retro experiences. Click the icons to explore my work.",
+      skills: ["HTML/CSS", "JavaScript", "UI Design", "Digital Products"],
+      email: "hello@yourdomain.com",
+      contactNote: "Available for freelance projects and collaborations.",
+      links: [
+        { icon: "🌐", label: "Visit My Store / Gumroad", url: "https://gumroad.com" },
+        { icon: "▶️", label: "YouTube Channel", url: "https://youtube.com" },
+        { icon: "📸", label: "Instagram", url: "https://instagram.com" },
+        { icon: "💻", label: "GitHub Profile", url: "https://github.com" }
+      ],
+      projects: [
+        {
+          title: "RetroOS 95 Template",
+          desc: "A responsive 90s desktop portfolio & link-in-bio built in pure HTML/CSS/JS.",
+          url: "https://example.com"
+        },
+        {
+          title: "Creator Launch Kit",
+          desc: "A bundle of high-converting landing page templates for indie creators.",
+          url: "https://example.com"
+        }
+      ]
+    };
+    /* ==========================================================
+       END CONFIG — NO NEED TO EDIT BELOW THIS LINE
+    ========================================================== */
+
+    // Render Content from Config
+    document.title = `${SITE_CONFIG.name} — ${SITE_CONFIG.brandName}`;
+    document.getElementById("start-brand").textContent = SITE_CONFIG.brandName;
+
+    document.getElementById("about-content").innerHTML = `
+      <div class="profile-head">
+        <div class="avatar in">${SITE_CONFIG.avatar}</div>
+        <div>
+          <p class="name">${SITE_CONFIG.name}</p>
+          <p class="role">${SITE_CONFIG.role}</p>
+        </div>
+      </div>
+      <p class="bio">${SITE_CONFIG.bio}</p>
+      <div class="tags">
+        ${SITE_CONFIG.skills.map(s => `<span class="tag">${s}</span>`).join("")}
+      </div>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button class="btn out" onclick="openWin('links-win')">🔗 Open Links</button>
+        <button class="btn out" onclick="openWin('projects-win')">📁 View Projects</button>
+      </div>
+    `;
+
+    document.getElementById("links-content").innerHTML = SITE_CONFIG.links.map(l => `
+      <a class="btn out link-btn" href="${l.url}" target="_blank" rel="noopener">
+        <span>${l.icon}</span> <span>${l.label}</span>
+      </a>
+    `).join("");
+
+    document.getElementById("projects-content").innerHTML = SITE_CONFIG.projects.map(p => `
+      <div class="proj-card in">
+        <p class="proj-title">${p.title}</p>
+        <p class="proj-desc">${p.desc}</p>
+        <div>
+          <a class="btn out" href="${p.url}" target="_blank" rel="noopener" style="padding:3px 10px; font-size:12px;">Open Project ↗</a>
+        </div>
+      </div>
+    `).join("");
+
+    document.getElementById("contact-content").innerHTML = `
+      <p class="bio">${SITE_CONFIG.contactNote}</p>
+      <div class="in" style="padding:8px; font-family:monospace; font-size:12px;">${SITE_CONFIG.email}</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn out" id="copy-btn" onclick="copyEmail()">📋 Copy Email</button>
+        <a class="btn out" href="mailto:${SITE_CONFIG.email}">✉️ Send Email</a>
+      </div>
+    `;
+
+    // Window Management
+    let topZ = 20;
+    function openWin(id) {
+      if (window.innerWidth <= 700) {
+        document.querySelectorAll(".win").forEach(w => w.classList.remove("open"));
+      }
+      const w = document.getElementById(id);
+      w.classList.add("open");
+      w.style.zIndex = ++topZ;
+    }
+
+    function closeWin(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    function toggleStart() {
+      document.getElementById("start-menu").classList.toggle("open");
+    }
+
+    function setTheme(bg, bar1, bar2) {
+      document.documentElement.style.setProperty("--bg", bg);
+      document.documentElement.style.setProperty("--bar-start", bar1);
+      document.documentElement.style.setProperty("--bar-end", bar2);
+    }
+
+    function copyEmail() {
+      navigator.clipboard.writeText(SITE_CONFIG.email);
+      const btn = document.getElementById("copy-btn");
+      btn.textContent = "✅ Copied!";
+      setTimeout(() => (btn.textContent = "📋 Copy Email"), 1500);
+    }
+
+    // Desktop Window Dragging
+    let activeWin = null, ox = 0, oy = 0;
+    function startDrag(e, id) {
+      if (window.innerWidth <= 700) return;
+      activeWin = document.getElementById(id);
+      activeWin.style.zIndex = ++topZ;
+      ox = e.clientX - activeWin.offsetLeft;
+      oy = e.clientY - activeWin.offsetTop;
+      document.onmousemove = ev => {
+        activeWin.style.left = (ev.clientX - ox) + "px";
+        activeWin.style.top = Math.max(0, ev.clientY - oy) + "px";
+      };
+      document.onmouseup = () => { activeWin = null; document.onmousemove = null; };
+    }
+
+    // Live Clock
+    function updateClock() {
+      document.getElementById("clock").textContent = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
